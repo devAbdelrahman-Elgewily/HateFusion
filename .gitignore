@@ -1,6 +1,8 @@
-# --- Heavy artifacts (track folder structure only) ---
-data/*
-!data/.gitkeep
+# --- Heavy datasets (download separately, see data/README.md) ---
+data/MMHS150K/
+data/The Hateful Memes Challenge/
+
+# --- Training artifacts (track folder structure only) ---
 models/*
 !models/.gitkeep
 outputs/*
