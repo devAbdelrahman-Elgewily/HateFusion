@@ -58,15 +58,21 @@ image branches on text-dominant hate content.
 
 ## Datasets
 
-| Dataset | Role | Size | License |
-|---------|------|------|---------|
-| [MMHS150K](https://gombru.github.io/2019/10/09/MMHS/) | Primary training | 150K tweets, ~6 GB | Academic research |
-| [Hateful Memes](https://hatefulmemeschallenge.com) | Cross-domain test only | 10K memes, ~3 GB | Facebook AI research terms |
-| [Cyberbullying Tweets](https://www.kaggle.com/datasets/andrewmvd/cyberbullying-classification) | RoBERTa warm-start | 47K tweets, 50 MB | Open data |
+| Dataset | Role | Size | In repo? | License |
+|---------|------|------|----------|---------|
+| [MMHS150K](https://gombru.github.io/2019/10/09/MMHS/) | Primary training | 150K tweets, ~6 GB | ❌ Download separately | Academic research |
+| [Hateful Memes](https://hatefulmemeschallenge.com) | Cross-domain test only | 10K memes, ~3 GB | ❌ Download separately | Facebook AI research terms |
+| [Cyberbullying Tweets](https://www.kaggle.com/datasets/andrewmvd/cyberbullying-classification) | RoBERTa warm-start | 47K tweets, 7 MB | ✅ `data/cyberbullying_tweets.csv` | Open data |
+| Processed labels + features | Phase 1 outputs (Notebooks 01 + 03) | 36 MB | ✅ `data/processed/` | This repo (MIT) |
 
-> ⚠️ Datasets are **not** included in this repository. See [Dataset Setup](#dataset-setup)
-> for download instructions. Dataset usage is subject to original dataset licenses —
-> this codebase's MIT license does not grant rights to the underlying data.
+> ⚠️ **The two heavy image datasets (MMHS150K + Hateful Memes, ~9 GB combined)
+> are NOT in this repository.** See [`data/README.md`](data/README.md) or the
+> [Dataset Setup](#dataset-setup) section below for download instructions and
+> the expected directory layout. The smaller text/tabular files **are**
+> committed so reviewers can skip the ~10 min Phase 1 pipeline and jump
+> straight to Notebook 04+. Dataset usage is subject to original dataset
+> licenses — this codebase's MIT license does not grant rights to the
+> underlying data.
 
 ---
 
@@ -118,13 +124,17 @@ auto-moderated; low-agreement cases are flagged for human reviewer.
 ```
 HateFusion/
 ├── data/
-│   ├── mmhs150k/              ← MMHS150K dataset (not tracked by git)
-│   ├── hateful_memes/         ← Hateful Memes dataset (not tracked by git)
-│   └── cyberbullying/         ← Cyberbullying Kaggle CSV (not tracked by git)
+│   ├── README.md                              ← Dataset download instructions
+│   ├── cyberbullying_tweets.csv               ✅ Tracked (7 MB)
+│   ├── processed/
+│   │   ├── labels_parsed.csv                  ✅ Tracked (29 MB, T1/T2/T3 labels)
+│   │   └── structured_features.csv            ✅ Tracked (7 MB, 9-feature vector)
+│   ├── MMHS150K/                              ❌ Not tracked — download separately
+│   └── The Hateful Memes Challenge/           ❌ Not tracked — download separately
 ├── notebooks/
-│   ├── 01_data_loading.ipynb          ✅ Complete
-│   ├── 02_eda.ipynb                   ✅ Complete
-│   ├── 03_structured_features.ipynb   ✅ Complete
+│   ├── 01_data_loading.ipynb                  ✅ Complete
+│   ├── 02_eda.ipynb                           ✅ Complete
+│   ├── 03_structured_features.ipynb           ✅ Complete
 │   ├── 04_roberta_pretrain_kaggle.ipynb
 │   ├── 05_mvp1_roberta_t1.ipynb
 │   ├── 06_mvp2_clip_xgb.ipynb
@@ -133,18 +143,15 @@ HateFusion/
 │   ├── 09_mvp5_t3_ablations_bias.ipynb
 │   ├── 10_per_sample_modality_analysis.ipynb
 │   └── 11_xai_dashboard_prep.ipynb
-├── data/processed/
-│   ├── labels_parsed.csv              ✅ 149,819 rows, T1/T2/T3 labels
-│   └── structured_features.csv        ✅ 9-feature vector, 149,819 rows
-├── models/                    ← checkpoints saved here (not tracked by git)
-├── outputs/                   ← charts, ablation tables, logs
-├── app/
-│   └── dashboard.py           ← Streamlit moderation dashboard
+├── models/                       ← Training checkpoints (not tracked by git)
+├── outputs/                      ← Charts, ablation tables, logs (not tracked)
 ├── Reports/
+│   ├── Multimodal_Cyberbullying_Detection_v1.1.md
 │   ├── Multimodal_Cyberbullying_Detection_v1.2.md
-│   └── Cyberbullying_Detection_Report_Framing.md
-├── CLAUDE.md                  ← Claude Code session directives
-├── requirements.txt
+│   ├── Cyberbullying_Detection_Report_Framing.md
+│   └── Phase1_Data_Engineering_Report.md
+├── CLAUDE.md                     ← Claude Code session directives
+├── LICENSE
 └── README.md
 ```
 
@@ -152,43 +159,45 @@ HateFusion/
 
 ## Dataset Setup
 
-### 1. MMHS150K
+> Same content as [`data/README.md`](data/README.md) — duplicated here for
+> readers landing on the GitHub homepage. **Folder names below are exact**
+> (case-sensitive on Linux/Lightning); the code reads from these paths.
+
+### 1. MMHS150K (~6 GB) — NOT in repo
+
 ```bash
-# Download from official page (choose any mirror):
+# Download from the official release page (choose any mirror):
 # https://gombru.github.io/2019/10/09/MMHS/
 # Direct: https://datasets.cvc.uab.es/MMHS150K/MMHS150K.zip
 
-# Extract to:
-data/mmhs150k/
-├── img_resized/
-├── img_txt/
-├── splits/
+# Extract to (exact case):
+data/MMHS150K/
+├── img_resized/              # ~150K .jpg files
+├── img_txt/                  # ~150K .json files (pre-extracted OCR)
+├── splits/                   # train_ids.txt, val_ids.txt, test_ids.txt
 ├── MMHS150K_GT.json
 └── hatespeech_keywords.txt
 ```
 
-### 2. Hateful Memes
+### 2. Hateful Memes (~3.4 GB) — NOT in repo
+
 ```bash
 # Accept terms and download from:
 # https://hatefulmemeschallenge.com
-# Or Kaggle mirror: https://www.kaggle.com/datasets/parthplc/facebook-hateful-meme-dataset
+# Or HuggingFace mirror: neuralcatcher/hateful_memes
 
-# Extract to:
-data/hateful_memes/
-├── img/
+# Extract to (note the spaces in the folder name):
+data/The Hateful Memes Challenge/
+├── img/                      # ~10K .png files
 ├── train.jsonl
 ├── dev.jsonl
 └── test.jsonl
 ```
 
-### 3. Cyberbullying Tweets
-```bash
-# Download from Kaggle (free account required):
-# https://www.kaggle.com/datasets/andrewmvd/cyberbullying-classification
+### 3. Cyberbullying Tweets — already in repo
 
-# Place CSV at:
-data/cyberbullying/cyberbullying_tweets.csv
-```
+Tracked at `data/cyberbullying_tweets.csv` (7 MB). Original source for
+reference: https://www.kaggle.com/datasets/andrewmvd/cyberbullying-classification
 
 ---
 
@@ -196,7 +205,7 @@ data/cyberbullying/cyberbullying_tweets.csv
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/HateFusion.git
+git clone https://github.com/devAbdelrahman-Elgewily/HateFusion.git
 cd HateFusion
 
 # Create conda environment
@@ -291,7 +300,7 @@ If you use this code in your research:
              Gated Cross-Modal Attention on MMHS150K},
   author  = {[Your Name]},
   year    = {2025},
-  url     = {https://github.com/yourusername/HateFusion}
+  url     = {https://github.com/devAbdelrahman-Elgewily/HateFusion}
 }
 ```
 
