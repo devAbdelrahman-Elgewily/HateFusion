@@ -2,6 +2,12 @@
 data/MMHS150K/
 data/The Hateful Memes Challenge/
 
+# --- Phase 2 scratch/debugging helpers (top-level in notebooks/ only) ---
+# Probes, dumps, waiters, smoke tests, diagnostic scripts kept locally for
+# reference but never pushed. Curated ones live in notebooks/previous_tests/.
+notebooks/_*.py
+notebooks/_*.sh
+
 # --- Training artifacts (track folder structure only) ---
 models/*
 !models/.gitkeep
@@ -56,4 +62,5 @@ desktop.ini
 
 # --- Claude Code local state ---
 .claude/
+CLAUDE.md
 CLAUDE.local.md
