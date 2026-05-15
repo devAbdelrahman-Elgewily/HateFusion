@@ -1,66 +1,46 @@
-# --- Heavy datasets (download separately, see data/README.md) ---
-data/MMHS150K/
-data/The Hateful Memes Challenge/
-
-# --- Phase 2 scratch/debugging helpers (top-level in notebooks/ only) ---
-# Probes, dumps, waiters, smoke tests, diagnostic scripts kept locally for
-# reference but never pushed. Curated ones live in notebooks/previous_tests/.
-notebooks/_*.py
-notebooks/_*.sh
-
-# --- Training artifacts (track folder structure only) ---
-models/*
-!models/.gitkeep
-outputs/*
-!outputs/.gitkeep
-
-# --- Reference PDFs (not part of the code repo) ---
-Research Papers/
-
-# --- Python ---
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-*.egg
-*.egg-info/
-.eggs/
-build/
-dist/
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
+*.pyc
+.Python
 
-# --- Jupyter ---
+# Jupyter
 .ipynb_checkpoints/
-*-checkpoint.ipynb
+*/.ipynb_checkpoints/*
 
-# --- Virtual envs / package managers ---
+# Python scripts (user request - all .py files excluded from repo)
+*.py
+
+# Environments
+.env
 .venv/
 venv/
 env/
 ENV/
-.conda/
 
-# --- IDE / editor ---
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# --- OS junk ---
+# OS
 .DS_Store
 Thumbs.db
-desktop.ini
 
-# --- Secrets ---
-.env
-.env.*
-!.env.example
-*.pem
-*.key
+# Project artefacts - large or generated
+models/
+data/MMHS150K/
+data/The Hateful Memes Challenge/
+data/cyberbullying_tweets.csv
+data/processed/
+*.zip
 
-# --- Claude Code local state ---
-.claude/
-CLAUDE.md
-CLAUDE.local.md
+# Logs and temp
+*.log
+*.tmp
+/tmp/
+
+# Lightning AI runtime
+/teamspace/
