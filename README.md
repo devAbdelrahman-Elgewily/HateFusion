@@ -1,306 +1,145 @@
-# HateFusion 🔍
+# HateFusion
 
-**Multimodal hate speech detection on MMHS150K using CLIP image features, Twitter-RoBERTa,
-and gated cross-modal attention fusion.**
+> Parameter-efficient multimodal hate speech detection on MMHS150K with per-sample interpretability.
 
-> Final year Computer Science (AI Major) undergraduate project.
-> Addresses the documented failure mode where naive multimodal fusion underperforms
-> text-only baselines on the MMHS150K benchmark (Gomez et al., 2019).
-
----
+[![Python](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-orange.svg)](https://pytorch.org/)
+[![Dataset](https://img.shields.io/badge/dataset-MMHS150K-green.svg)](https://gombru.github.io/2019/10/09/MMHS/)
+[![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](LICENSE)
 
 ## Overview
 
-Modern hate speech increasingly combines seemingly innocent text with hostile images —
-attack patterns that text-only moderation systems miss. HateFusion addresses this by
-fusing three modalities through a **gated cross-modal attention layer** that learns
-*when* each modality matters, rather than combining them equally.
+HateFusion is a gated cross-modal attention architecture that fuses CLIP ViT-B/16 (image), Twitter-RoBERTa (text), and a 9-dimensional structured-feature branch under PEFT LoRA constraints. It targets the documented failure mode in Gomez et al. 2019 where naive multimodal fusion underperforms text-only baselines on MMHS150K, and was developed through a systematic 11-notebook ablation spanning four fusion strategies × two LoRA capacities × two entropy weights × four IW-attention variants. **The headline finding is a clean negative result**: the ~ 0.74 AUC ceiling under PEFT is information-theoretically over-determined across 10+ runs, and the project's named contribution — context-conditioned identity-weighted cross-attention — is shown via bias-off ablation to contribute essentially zero to final predictions. The architectural plumbing introduced alongside the bias term (per-branch LayerNorm + centered VADER modulation) is what carries what modest gains exist over the gated baseline.
 
-The project targets the specific open research problem documented in the MMHS150K paper:
-naive multimodal fusion fails to outperform text-only baselines. Our gated fusion
-architecture directly addresses this failure mode with entropy regularization and full
-gate collapse diagnostics.
+## Headline Results
 
----
+Matched-methodology test-set results across the four MVP 4 variants plus the bias-off ablation, all evaluated on lowercase preprocessing (n = 10,000 test samples / n_t2_valid = 8,411). 95 % bootstrap CIs from 1,000 resamples (seed 42). Source: [`outputs/diagnostic/mvp4_corrected_comparison.md`](outputs/diagnostic/mvp4_corrected_comparison.md).
+
+| Variant | Test AUC [95 % CI] | F1m [95 % CI] | FPR | T2 NotHate F1 [95 % CI] | Gate (t / i / s, H) |
+|---|---|---|---:|---|---|
+| **MVP 4-lower** (gated baseline) | 0.7358 [0.7253, 0.7456] | 0.6867 [0.6772, 0.6956] | 0.2921 | 0.2692 [0.2559, 0.2829] | 0.450 / 0.062 / 0.489, H = 0.845 |
+| MVP 4-IW (NB 09) | 0.7359 [0.7258, 0.7459] | 0.6876 [0.6780, 0.6965] | 0.2857 | 0.3378 [0.3237, 0.3528] | 0.374 / 0.299 / 0.327, H = 1.073 |
+| MVP 4-IW-CC (NB 09b) | 0.7340 [0.7241, 0.7437] | 0.6882 [0.6790, 0.6971] | 0.2981 | 0.5154 [0.5011, 0.5287] | 1.000 / 0.000 / 0.000, H = 0.000 |
+| **MVP 4-IW-CC-S (NB 09c)** | **0.7359** [0.7256, 0.7458] | **0.6889** [0.6797, 0.6979] | 0.3011 | **0.5791** [0.5663, 0.5930] | 0.467 / 0.219 / 0.315, H = 1.029 |
+| IW-CC-S-bias-off (λ_id = 0) | 0.7359 [0.7256, 0.7458] | 0.6888 [0.6796, 0.6979] | 0.3013 | 0.5789 [0.5661, 0.5930] | 0.467 / 0.219 / 0.315, H = 1.029 |
+
+![Per-community identity-term masking flip rate across the four MVP 4 variants. All variants exceed the 15 % design-target threshold by ≈ 2×; bias-robustness is a dataset-level property, not architecture-level.](outputs/nb11/01_masking_flip_rate.png)
+
+- **The ~ 0.74 AUC ceiling holds across all variants** — within the bootstrap CI band of the four-run MVP 1 diagnostic ([Phase 2 § 11](Reports/Phase2_Modeling_Report.md)). Under PEFT LoRA on `cardiffnlp/twitter-roberta-base-2022-154m` for MMHS150K T1, this ceiling appears information-theoretic, not optimisation-limited.
+- **The IW bias mechanism contributes Δ ≈ +0.0002 to T2 NotHate F1.** The bias-off ablation (same NB 09c weights with `λ_id = 0` at inference) matches the full IW-CC-S to four decimal places on every aggregate metric and disagrees on **1 out of 10,000 test samples** ([Phase 3 § 6](Reports/Phase3_Analysis_Report.md)).
+- **The architectural plumbing carries what gains exist.** Per-branch LayerNorm before gate concatenation + centered VADER modulation jointly resolve the gate-collapse-via-magnitude-mismatch failure mode documented in NB 09b (test gate entropy 0.000 → 1.029).
+- **Bias robustness requires dataset-level intervention, not architecture-level.** All four variants flip ≈ 35 % of identity-laden samples when the identity tokens are masked — roughly 2× the 15 % design target. Counterintuitively, MVP 4-IW-CC-S has the *highest* flip rate (0.3691) of the four (NB 11).
+
+## Key Findings
+
+1. **The ~ 0.74 LoRA PEFT ceiling is characterised across 10+ runs** spanning four fusion strategies (text-only / naive concat / three-branch naive / gated), two LoRA capacities (rank 32 / rank 64), and two entropy weights (0.01 / 0.05). Test AUC range across all runs: 0.7340 – 0.7431.
+2. **Gate-collapse-via-magnitude-mismatch diagnosis + per-branch LayerNorm fix** (NB 09b → NB 09c trajectory). Documented as a reusable architectural pattern: any gated multimodal fusion where branch outputs have heterogeneous magnitudes can collapse onto the most magnitude-stable branch.
+3. **Per-sample modality reliance taxonomy** (NB 10) — five categories (*Convergent Correct / Text Saved / Image Saved / Emergent Multimodal / Fusion Failure*, plus *Struct Saved* sub-bucket) operationalised via one-hot gate substitution. Reveals that aggregate AUC parity across variants conceals near-identical per-sample behaviour (> 97 % cross-variant agreement).
+4. **Bias-off ablation methodology** — zero a single attention term at inference, re-evaluate the full test set, compare per-sample agreement. Documented in [Phase 3 § 6](Reports/Phase3_Analysis_Report.md) and reusable for any single-term-attention contribution claim.
+5. **Case-preprocessing diagnostic** — when chaining a frozen pretrained encoder with downstream trainable modules, mismatched input preprocessing (e.g., lowercasing input to a case-sensitive frozen encoder) puts the encoder out-of-distribution at the very first layer and confounds cross-variant comparisons. See [`outputs/diagnostic/nb08_vs_nb10_audit.md`](outputs/diagnostic/nb08_vs_nb10_audit.md).
+6. **Honest negative result on identity-weighted cross-attention.** Keyword-based identity priors did not improve multimodal hate speech detection under any of the four tested architectures. The result is documented rather than hidden behind aggregate-metric framing, with the diagnostic infrastructure preserved for future variants.
 
 ## Architecture
 
+The production architecture is **MVP 4-IW-CC-S** (NB 09c). Frozen MVP 2 components are shown in `[F]`; trainable components in `[T]`.
+
 ```
-┌─────────────────┐   ┌─────────────────────┐   ┌─────────────────┐
-│  Branch A       │   │  Branch B            │   │  Branch C       │
-│  CLIP ViT-B/16  │   │  Twitter-RoBERTa     │   │  Structured     │
-│  + LoRA (r=16)  │   │  + LoRA (r=16)       │   │  Features (9-d) │
-│  → 512-d embed  │   │  → 768-d embed       │   │                 │
-└────────┬────────┘   └──────────┬───────────┘   └────────┬────────┘
-         │                       │                        │
-         └───────────────────────┼────────────────────────┘
-                                 │
-                  ┌──────────────▼──────────────┐
-                  │  Gated Cross-Modal Attention │
-                  │  g_A, g_B, g_C ∈ [0,1]      │
-                  │  + Entropy Regularization    │
-                  └──────────────┬──────────────┘
-                                 │
-                  ┌──────────────▼──────────────┐
-                  │  Shared Representation       │
-                  │  FC(2057 → 512) → ReLU → BN │
-                  └───┬──────────┬──────────┬───┘
-                      │          │          │
-                   T1: Hate   T2: Type   T3: Agreement
-                   Binary     6-class    Regression
+Text       input_ids ───► [F] Twitter-RoBERTa + Run-D LoRA (rank 32) ──► text_tokens (B, 128, 768)
+                                                                   └─►  text_cls   (B, 768)
+Image      pixel_values ─► [F] CLIP ViT-B/16 + MVP-2 LoRA ─► visual_projection_to_512 (768→512)
+                                                          └─► image_projection (512→768) ──► img_768 (B, 768)
+Struct     9 features ──► [T] Linear(9, 32) + ReLU + Dropout ─────────────────────────────► struct_embed (B, 32)
+
+   Cross-attention (image queries text tokens), trainable:
+       q = img_768.unsqueeze(1) ──► [T] IWCCSMultiheadAttention(num_heads=8) ─────► attn_out (B, 768)
+                                          │
+                            logits = (Q@K^T)/√d_k + λ_id · identity_mask
+                                                   · (1 + α · vader_neg_centered)
+                                          │
+       attended_img = [T] LayerNorm(img_768 + attn_out)  (B, 768)
+
+   Gate input (per-branch LayerNorm, then concat):
+       [T] gate_ln_text(text_cls) ── [T] gate_ln_image(attended_img) ── [T] gate_ln_struct(struct_embed)
+                                          │
+       gate_logits ── [T] Linear(1568, 3) ──► softmax ──► gates (B, 3) = [g_text, g_image, g_struct]
+
+   Gated fusion in shared 256-d space:
+       fused = g_text · [T] proj_text(text_cls)
+             + g_image · [T] proj_image(attended_img)
+             + g_struct · [T] proj_struct(struct_embed)            (B, 256)
+                                          │
+                       [T] head_t1 (Linear→ReLU→Dropout→Linear) ──► logits_t1 (B, 1)   ← binary hate
+                       [T] head_t2 (Linear→ReLU→Dropout→Linear) ──► logits_t2 (B, 6)   ← T2 multiclass
 ```
 
-**Key design principle:** The gating mechanism learns to weight each modality
-per sample — amplifying image signals on meme-style posts, down-weighting noisy
-image branches on text-dominant hate content.
+The identity-bias term `λ_id · identity_mask · (1 + α · vader_neg_centered)` was tested but shown via bias-off ablation to contribute negligibly to final predictions ([Phase 3 § 6](Reports/Phase3_Analysis_Report.md)). The architectural improvements (per-branch LayerNorm + centered VADER modulation) are what carry the lift over MVP 4-IW. See [Phase 2 § 16c](Reports/Phase2_Modeling_Report.md) for the architectural progression NB 09 → NB 09b → NB 09c and the post-hoc correction.
 
----
-
-## Datasets
-
-| Dataset | Role | Size | In repo? | License |
-|---------|------|------|----------|---------|
-| [MMHS150K](https://gombru.github.io/2019/10/09/MMHS/) | Primary training | 150K tweets, ~6 GB | ❌ Download separately | Academic research |
-| [Hateful Memes](https://hatefulmemeschallenge.com) | Cross-domain test only | 10K memes, ~3 GB | ❌ Download separately | Facebook AI research terms |
-| [Cyberbullying Tweets](https://www.kaggle.com/datasets/andrewmvd/cyberbullying-classification) | RoBERTa warm-start | 47K tweets, 7 MB | ✅ `data/cyberbullying_tweets.csv` | Open data |
-| Processed labels + features | Phase 1 outputs (Notebooks 01 + 03) | 36 MB | ✅ `data/processed/` | This repo (MIT) |
-
-> ⚠️ **The two heavy image datasets (MMHS150K + Hateful Memes, ~9 GB combined)
-> are NOT in this repository.** See [`data/README.md`](data/README.md) or the
-> [Dataset Setup](#dataset-setup) section below for download instructions and
-> the expected directory layout. The smaller text/tabular files **are**
-> committed so reviewers can skip the ~10 min Phase 1 pipeline and jump
-> straight to Notebook 04+. Dataset usage is subject to original dataset
-> licenses — this codebase's MIT license does not grant rights to the
-> underlying data.
-
----
-
-## Prediction Targets
-
-| Target | Task | Description |
-|--------|------|-------------|
-| **T1** | Binary classification | Hate speech / Not hate speech |
-| **T2** | 6-class classification | Racist / Sexist / Homophobic / Religion / Other / None |
-| **T3** | Regression [0, 1] | Annotator agreement score — routes borderline cases to human review |
-
-T3 enables **human-in-the-loop deployment**: high-agreement predictions are
-auto-moderated; low-agreement cases are flagged for human reviewer.
-
----
-
-## Results
-
-> 🚧 **Training in progress.** Results will be updated as each MVP is completed.
-
-### Ablation Study
-
-| Configuration | T1 AUC | T2 Macro F1 | Hateful Memes AUC |
-|---------------|--------|-------------|-------------------|
-| Text-only (Twitter-RoBERTa) | — | — | — |
-| Image-only (CLIP) | — | — | — |
-| OCR-text-only | — | — | — |
-| Structured-only (XGBoost) | — | — | — |
-| Naive concat fusion | — | — | — |
-| **Gated fusion (ours)** | — | — | — |
-| Param-matched RoBERTa-large | — | — | — |
-
-### Modality Reliance Analysis
-
-> Per-sample interaction pattern distribution — updated after MVP 4.
-
-| Pattern | Count | % of Test Set |
-|---------|-------|--------------|
-| Convergent Correct | — | — |
-| Text Saved | — | — |
-| Image Saved | — | — |
-| Emergent Multimodal | — | — |
-| Fusion Failure | — | — |
-
----
-
-## Project Structure
+## Repository Structure
 
 ```
 HateFusion/
-├── data/
-│   ├── README.md                              ← Dataset download instructions
-│   ├── cyberbullying_tweets.csv               ✅ Tracked (7 MB)
-│   ├── processed/
-│   │   ├── labels_parsed.csv                  ✅ Tracked (29 MB, T1/T2/T3 labels)
-│   │   └── structured_features.csv            ✅ Tracked (7 MB, 9-feature vector)
-│   ├── MMHS150K/                              ❌ Not tracked — download separately
-│   └── The Hateful Memes Challenge/           ❌ Not tracked — download separately
-├── notebooks/
-│   ├── 01_data_loading.ipynb                  ✅ Complete
-│   ├── 02_eda.ipynb                           ✅ Complete
-│   ├── 03_structured_features.ipynb           ✅ Complete
-│   ├── 04_roberta_pretrain_kaggle.ipynb
-│   ├── 05_mvp1_roberta_t1.ipynb
-│   ├── 06_mvp2_clip_xgb.ipynb
-│   ├── 07_mvp3_naive_fusion.ipynb
-│   ├── 08_mvp4_gated_fusion.ipynb
-│   ├── 09_mvp5_t3_ablations_bias.ipynb
-│   ├── 10_per_sample_modality_analysis.ipynb
-│   └── 11_xai_dashboard_prep.ipynb
-├── models/                       ← Training checkpoints (not tracked by git)
-├── outputs/                      ← Charts, ablation tables, logs (not tracked)
-├── Reports/
-│   ├── Multimodal_Cyberbullying_Detection_v1.1.md
-│   ├── Multimodal_Cyberbullying_Detection_v1.2.md
-│   ├── Cyberbullying_Detection_Report_Framing.md
-│   └── Phase1_Data_Engineering_Report.md
-├── CLAUDE.md                     ← Claude Code session directives
-├── LICENSE
-└── README.md
+├── notebooks/      20 executed notebooks (data → modeling → analysis)
+├── models/         Trained checkpoints (weights .pt/.safetensors not tracked)
+├── data/processed/ Identity lexicon + per-sample analytical parquets
+├── outputs/        Charts, tables, diagnostic reports
+├── Reports/        Phase 1 / 2 / 3 reports + identity-lexicon docs
+└── requirements.txt
 ```
 
----
+## Reports
+
+Full project documentation lives in the three phase reports:
+
+- **[Phase 1 — Data Engineering](Reports/Phase1_Data_Engineering_Report.md)** — label parsing, structured feature engineering, EDA, train / val / test splits
+- **[Phase 2 — Modeling](Reports/Phase2_Modeling_Report.md)** — MVP ladder (text-only → gated multimodal), IW family architectural progression (NB 09 → NB 09b → NB 09c), rank-64 ablation, entropy ablation, NB 09c matched-methodology post-hoc correction (§ 16c.12)
+- **[Phase 3 — Analysis](Reports/Phase3_Analysis_Report.md)** — per-sample modality reliance taxonomy (NB 10), bias-off ablation, identity-term masking, counterfactual swap test, per-community performance stratification (NB 11)
+- **[Identity Lexicon Build Report](Reports/Identity_Lexicon_Build_Report.md)** — HateXplain-derived 1,177-token lexicon with Hatebase overlap audit
+
+## Notebook Pipeline
+
+- **Phase 1 (Data Engineering)**: `01_data_loading` · `02_eda` · `03_structured_features`
+- **Phase 2 (Modeling)**: `04_roberta_pretrain_kaggle` (Twitter-RoBERTa warm-start) · `05d_rank32_lr3e4` (MVP 1 baseline, Run D) · `05_mvp1_rank64` (capacity ablation) · `06_mvp2_naive_fusion` · `06_mvp2_rank64` · `07_mvp3_three_branch_fusion` · `07_mvp3_rank64` · `08_mvp4_gated_fusion` · `08_mvp4_rank64` · `08b_mvp4_entropy_ablation` · `08_lower_mvp4_lowercase` (auxiliary retrain for matched-methodology) · `09_mvp4_iw_attention` · `09b_mvp4_iwcc_attention` · `09c_mvp4_iwccs_attention`
+- **Phase 3 (Analysis)**: `10_per_sample_modality_analysis` · `10_lower_per_sample_modality_analysis` · `11_bias_analysis`
+
+Each notebook is self-contained and re-runnable; see the relevant Phase report for findings and decisions locked at each step.
+
+## Quick Start
+
+```bash
+git clone https://github.com/devAbdelrahman-Elgewily/HateFusion.git
+cd HateFusion
+conda create -n hatefusion python=3.11
+conda activate hatefusion
+pip install -r requirements.txt
+jupyter lab
+```
+
+Notebooks 01 → 11 form the pipeline; each notebook documents its inputs, hparams, and outputs in the first markdown cell.
 
 ## Dataset Setup
 
-> Same content as [`data/README.md`](data/README.md) — duplicated here for
-> readers landing on the GitHub homepage. **Folder names below are exact**
-> (case-sensitive on Linux/Lightning); the code reads from these paths.
-
-### 1. MMHS150K (~6 GB) — NOT in repo
-
-```bash
-# Download from the official release page (choose any mirror):
-# https://gombru.github.io/2019/10/09/MMHS/
-# Direct: https://datasets.cvc.uab.es/MMHS150K/MMHS150K.zip
-
-# Extract to (exact case):
-data/MMHS150K/
-├── img_resized/              # ~150K .jpg files
-├── img_txt/                  # ~150K .json files (pre-extracted OCR)
-├── splits/                   # train_ids.txt, val_ids.txt, test_ids.txt
-├── MMHS150K_GT.json
-└── hatespeech_keywords.txt
-```
-
-### 2. Hateful Memes (~3.4 GB) — NOT in repo
-
-```bash
-# Accept terms and download from:
-# https://hatefulmemeschallenge.com
-# Or HuggingFace mirror: neuralcatcher/hateful_memes
-
-# Extract to (note the spaces in the folder name):
-data/The Hateful Memes Challenge/
-├── img/                      # ~10K .png files
-├── train.jsonl
-├── dev.jsonl
-└── test.jsonl
-```
-
-### 3. Cyberbullying Tweets — already in repo
-
-Tracked at `data/cyberbullying_tweets.csv` (7 MB). Original source for
-reference: https://www.kaggle.com/datasets/andrewmvd/cyberbullying-classification
-
----
-
-## Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/devAbdelrahman-Elgewily/HateFusion.git
-cd HateFusion
-
-# Create conda environment
-conda create -n hateful_project python=3.11
-conda activate hateful_project
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-### Requirements
-```
-torch>=2.0.0
-transformers>=4.35.0
-peft>=0.7.0
-open-clip-torch>=2.20.0
-datasets>=2.14.0
-scikit-learn>=1.3.0
-xgboost>=2.0.0
-vaderSentiment>=3.3.2
-better-profanity>=0.7.0
-streamlit>=1.28.0
-plotly>=5.17.0
-grad-cam>=1.4.8
-captum>=0.6.0
-shap>=0.43.0
-faiss-cpu>=1.7.4
-wandb>=0.16.0
-pandas>=2.0.0
-numpy>=1.24.0
-Pillow>=10.0.0
-tqdm>=4.65.0
-```
-
----
-
-## Usage
-
-### Run the notebooks
-```bash
-conda activate hateful_project
-jupyter lab
-```
-Open notebooks in order (01 → 11). Each notebook is self-contained
-with a summary cell documenting findings and downstream decisions.
-
-### Run the moderation dashboard
-```bash
-streamlit run app/dashboard.py
-```
-
----
+The smaller text / tabular files (identity lexicon, MMHS150K split definitions, per-sample analytical parquets) are tracked in this repository. The two image datasets — MMHS150K (≈ 6 GB) and Hateful Memes (≈ 3 GB) — must be downloaded separately. See [`data/README.md`](data/README.md) for download instructions and the expected directory layout. The Cyberbullying Tweets dataset used for the Twitter-RoBERTa warm-start (NB 04) is downloadable from Kaggle and is **not** committed.
 
 ## Reproducibility
 
-All experiments use fixed seeds:
-```python
-random.seed(42)
-np.random.seed(42)
-torch.manual_seed(42)
-torch.cuda.manual_seed_all(42)
-```
+All experiments use seed 42 throughout (`random`, `numpy`, `torch`, `torch.cuda`). Official MMHS150K splits are used as-is — train 134,820 / val 4,999 / test 10,000 — for direct comparability with Gomez et al. 2019. Val and test are 50 / 50 hate-balanced by dataset design (Gomez 2019); train follows the natural ~ 22 % hate rate. Bootstrap CIs in all reports use 1,000 resamples with seed 42.
 
-Official MMHS150K splits are used as-is (train 134,820 / val 4,999 / test 10,000)
-for direct comparability with Gomez et al. 2019. Val and test are
-deliberately 50/50 hate-balanced by dataset design.
+## Ethics & Limitations
 
----
-
-## Bias & Ethics
-
-This project deals with offensive content. Important disclosures:
-
-- **No deployment claims** — academic research artifact only
-- **English Twitter only** — does not generalize to other languages or platforms
-- **Inherits MMHS150K biases** — known keyword sampling bias and annotation inconsistency
-  documented in Davidson et al. (2019) and Sap et al. (2019)
-- **Bias mitigations implemented:** identity-term masking (20% during training),
-  counterfactual swap testing, subgroup performance reporting
-- **Human-in-the-loop design** — T3 routes borderline cases to human reviewers;
-  system is not intended for fully automated moderation
-
----
+- **English Twitter only.** Does not generalise to other languages or platforms without re-training and a re-derived identity lexicon.
+- **Inherits MMHS150K biases.** Known keyword-sampling bias (Davidson et al. 2019) and annotator inconsistency (Sap et al. 2019) propagate into the model.
+- **Identity-masking bias-robustness threshold not met.** All four architectural variants tested exceed the 15 % identity-term-masking flip-rate threshold by ≈ 2× ([Phase 3 § 10.3](Reports/Phase3_Analysis_Report.md)). Bias-robustness improvements require dataset-level interventions (re-balanced training data, identity-token augmentation, counterfactual augmentation), not architecture changes.
+- **Academic research artefact, not for production.** No deployment claims. Identity-bias mechanism shown via bias-off ablation to be non-contributory — do not deploy variants under a "context-conditioned identity-aware moderation" framing.
+- **Identity lexicon derived from HateXplain** may not transfer to other datasets without community-specific adjustments.
 
 ## Citation
 
-If you use this code in your research:
-
 ```bibtex
-@misc{hateFusion2025,
-  title   = {HateFusion: Multimodal Hate Speech Detection via
-             Gated Cross-Modal Attention on MMHS150K},
-  author  = {[Your Name]},
-  year    = {2025},
-  url     = {https://github.com/devAbdelrahman-Elgewily/HateFusion}
+@misc{hatefusion2026,
+  title  = {HateFusion: Multimodal Hate Speech Detection via Gated Cross-Modal Attention on MMHS150K},
+  author = {Abdelrahman Elgewily},
+  year   = {2026},
+  url    = {https://github.com/devAbdelrahman-Elgewily/HateFusion}
 }
 ```
 
@@ -314,36 +153,21 @@ If you use this code in your research:
   year      = {2020}
 }
 
-@article{kiela2020hateful,
-  title   = {The Hateful Memes Challenge: Detecting Hate Speech in Multimodal Memes},
-  author  = {Kiela, Douwe and others},
-  journal = {NeurIPS},
-  year    = {2020}
+@inproceedings{mathew2021hatexplain,
+  title     = {HateXplain: A Benchmark Dataset for Explainable Hate Speech Detection},
+  author    = {Mathew, Binny and Saha, Punyajoy and Yimam, Seid Muhie and Biemann, Chris and Goyal, Pawan and Mukherjee, Animesh},
+  booktitle = {AAAI},
+  year      = {2021}
+}
+
+@inproceedings{hu2022lora,
+  title     = {LoRA: Low-Rank Adaptation of Large Language Models},
+  author    = {Hu, Edward J. and Shen, Yelong and Wallis, Phillip and Allen-Zhu, Zeyuan and Li, Yuanzhi and Wang, Shean and Wang, Lu and Chen, Weizhu},
+  booktitle = {ICLR},
+  year      = {2022}
 }
 ```
 
----
-
 ## License
 
-This project is licensed under the **MIT License** — see [LICENSE](LICENSE) for details.
-
-Dataset usage is subject to the original dataset licenses. This codebase's MIT license
-does not grant rights to the underlying datasets.
-
----
-
-## Project Status
-
-| Phase | Status | Notes |
-|-------|--------|-------|
-| Data Engineering | ✅ Complete | 149,819 labeled rows, 9-feature structured branch |
-| EDA | ✅ Complete | 6 charts, key findings documented |
-| Structured Features | ✅ Complete | Correlation-pruned to 9 features |
-| MVP 1 — Text Baseline | 🔄 In progress | Twitter-RoBERTa on T1 |
-| MVP 2 — Image + T2 | ⏳ Pending | CLIP + XGBoost baselines |
-| MVP 3 — Naive Fusion | ⏳ Pending | Replicating documented failure mode |
-| MVP 4 — Gated Fusion | ⏳ Pending | Core contribution |
-| MVP 5 — Full System | ⏳ Pending | T3 + ablations + bias analysis |
-| Per-Sample Analysis | ⏳ Pending | Modality reliance categorisation |
-| Dashboard | ⏳ Pending | Streamlit moderation app |
+MIT — see [LICENSE](LICENSE) for details. Dataset usage is subject to the original dataset licenses; this codebase's MIT license does not grant rights to the underlying data.
