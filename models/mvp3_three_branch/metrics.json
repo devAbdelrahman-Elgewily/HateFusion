@@ -1,0 +1,43 @@
+{
+  "run_label": "mvp3_three_branch",
+  "best_epoch": 2,
+  "best_val_t1_auc": 0.7478696278511405,
+  "best_val_t2_macro_f1": 0.48008577056256024,
+  "t1_pos_weight": 3.573890622879631,
+  "t1_thresholds": {
+    "balanced_headline": 0.5,
+    "recal_f1_optimised_on_recal_val": 0.22
+  },
+  "priors_for_recalibration": {
+    "hate": 0.2468,
+    "nothate": 0.7532
+  },
+  "t1_balanced_test_thr_0.5": {
+    "AUC": 0.7406184096247364,
+    "F1m": 0.6904760253567084,
+    "Pm": 0.6912440765822578,
+    "Rm": 0.690694647627786,
+    "FPR": 0.33606721344268853,
+    "TN": 3319.0,
+    "FP": 1680.0,
+    "FN": 1413.0,
+    "TP": 3588.0
+  },
+  "t1_recalibrated_test_thr_opt": {
+    "AUC": 0.7406184096247364,
+    "F1m": 0.6748781166292719,
+    "Pm": 0.6843957714976412,
+    "Rm": 0.6777810671112428,
+    "FPR": 0.4168833766753351,
+    "TN": 2915.0,
+    "FP": 2084.0,
+    "FN": 1138.0,
+    "TP": 3863.0
+  },
+  "t2_test_macro_f1_valid_only": 0.47865753163801456,
+  "t2_test_n_valid": 8411,
+  "loss_weights": {
+    "t1": 0.7,
+    "t2": 0.3
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "run_label": "mvp4_gated_fusion",
+  "best_epoch": 4,
+  "best_val_t1_auc": 0.7469776710684274,
+  "best_val_t2_macro_f1": 0.48268709599746956,
+  "t1_pos_weight": 3.573890622879631,
+  "t1_thresholds": {
+    "balanced_headline": 0.5,
+    "recal_f1_optimised_on_recal_val": 0.21000000000000002
+  },
+  "priors_for_recalibration": {
+    "hate": 0.2468,
+    "nothate": 0.7532
+  },
+  "t1_balanced_test_thr_0.5": {
+    "AUC": 0.7400032296001292,
+    "F1m": 0.6887950207203315,
+    "Pm": 0.6888135158208037,
+    "Rm": 0.6888008275520331,
+    "FPR": 0.3070614122824565,
+    "TN": 3464,
+    "FP": 1535,
+    "FN": 1577,
+    "TP": 3424
+  },
+  "t1_recalibrated_test_thr_opt": {
+    "AUC": 0.7400032296001292,
+    "F1m": 0.6668852649723893,
+    "Pm": 0.6815178745637046,
+    "Rm": 0.6714764868590595,
+    "FPR": 0.4460892178435687,
+    "TN": 2769,
+    "FP": 2230,
+    "FN": 1055,
+    "TP": 3946,
+    "threshold": 0.21000000000000002
+  },
+  "t2_test_macro_f1_valid_only": 0.49325566331601944,
+  "t2_test_n_valid": 276,
+  "loss_weights": {
+    "t1": 0.7,
+    "t2": 0.3,
+    "entropy": 0.05
+  },
+  "comparison": {
+    "mvp1": {
+      "AUC": 0.7431,
+      "F1m": 0.6855,
+      "FPR": 0.2667,
+      "label": "MVP 1 (text-only)"
+    },
+    "mvp2": {
+      "AUC": 0.7411,
+      "F1m": 0.6892,
+      "FPR": 0.3041,
+      "label": "MVP 2 (T+I naive)"
+    },
+    "mvp3": {
+      "AUC": 0.7406,
+      "F1m": 0.6905,
+      "FPR": 0.3361,
+      "label": "MVP 3 (T+I+S naive)"
+    },
+    "mvp4": {
+      "AUC": 0.7400032296001292,
+      "F1m": 0.6887950207203315,
+      "FPR": 0.3070614122824565,
+      "label": "MVP 4 (T+I+S gated attn)"
+    },
+    "auc_lift_vs_best_baseline": -0.003096770399870774,
+    "fpr_drop_vs_mvp2": -0.0029614122824564992,
+    "auc_pass": false,
+    "fpr_pass": false,
+    "verdict": "PRIMARY HYPOTHESIS NOT SUPPORTED ON THIS RUN. Gated attention did not beat the naive baselines on either AUC or FPR. Inspect gate entropy trajectory and per-branch usage; consider tuning entropy_weight, fusion_dim, or unfreezing select layers."
+  }
+}

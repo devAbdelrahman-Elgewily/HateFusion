@@ -1,0 +1,138 @@
+{
+  "run_label": "mvp4_iwcc_attention",
+  "best_epoch": 3,
+  "best_val_t1_auc": 0.7394285714285714,
+  "best_val_t2_macro_f1": 0.47251936497955116,
+  "best_val_t2_nothate_f1": 0.5234291799787008,
+  "t1_pos_weight": 3.573890622879631,
+  "t1_thresholds": {
+    "balanced_headline": 0.5,
+    "recal_f1_optimised_on_recal_val": 0.21000000000000002
+  },
+  "priors_for_recalibration": {
+    "hate": 0.2468,
+    "nothate": 0.7532
+  },
+  "t1_balanced_test_thr_0.5": {
+    "AUC": 0.7339600293584012,
+    "F1m": 0.6882431823199778,
+    "Pm": 0.6884421370306608,
+    "Rm": 0.6883027275321091,
+    "FPR": 0.2980596119223845,
+    "TN": 3509,
+    "FP": 1490,
+    "FN": 1627,
+    "TP": 3374
+  },
+  "t1_recalibrated_test_thr_opt": {
+    "AUC": 0.7339600293584012,
+    "F1m": 0.6718609153536277,
+    "Pm": 0.677334517406003,
+    "Rm": 0.6735854669434187,
+    "FPR": 0.39907981596319264,
+    "TN": 3004,
+    "FP": 1995,
+    "FN": 1269,
+    "TP": 3732,
+    "threshold": 0.21000000000000002
+  },
+  "t2_test_macro_f1_valid_only": 0.46871868182340154,
+  "t2_test_nothate_f1": 0.5152243589743589,
+  "t2_test_per_class_f1": {
+    "NotHate": 0.5152243589743589,
+    "Racist": 0.44051767048282725,
+    "Sexist": 0.3879957127545552,
+    "Homophobe": 0.7430293896006028,
+    "Religion": 0.125,
+    "OtherHate": 0.6005449591280654
+  },
+  "t2_test_n_valid": 8411,
+  "loss_weights": {
+    "t1": 0.7,
+    "t2": 0.3,
+    "entropy": 0.05
+  },
+  "iwcc_specific": {
+    "lambda_id_init": 1.0,
+    "lambda_id_final": 0.9618746042251587,
+    "alpha_init": 1.0,
+    "alpha_final": 0.9596338868141174,
+    "mean_identity_attention_fraction_test": 0.08381600677967072,
+    "mean_identity_attention_fraction_test_hate": 0.08320988714694977,
+    "mean_identity_attention_fraction_test_nothate": 0.08442236483097076,
+    "mean_uniform_baseline_test": 0.08295506238937378,
+    "mean_ctx_modulator_test_hate": 1.2222472429275513,
+    "mean_ctx_modulator_test_nothate": 1.1528728008270264,
+    "lift_over_uniform": 1.0103784799575806
+  },
+  "comparison": {
+    "mvp1": {
+      "AUC": 0.7431,
+      "F1m": 0.6855,
+      "FPR": 0.2667,
+      "T2": null,
+      "T2_NotHate": null,
+      "label": "MVP 1 (text only)"
+    },
+    "mvp2": {
+      "AUC": 0.7411,
+      "F1m": 0.6892,
+      "FPR": 0.3041,
+      "T2": 0.3795,
+      "T2_NotHate": null,
+      "label": "MVP 2 (T+I naive)"
+    },
+    "mvp3": {
+      "AUC": 0.7406,
+      "F1m": 0.6905,
+      "FPR": 0.3361,
+      "T2": 0.4787,
+      "T2_NotHate": null,
+      "label": "MVP 3 (T+I+S naive)"
+    },
+    "mvp4": {
+      "AUC": 0.74,
+      "F1m": 0.6888,
+      "FPR": 0.3071,
+      "T2": 0.4933,
+      "T2_NotHate": 0.5685,
+      "label": "MVP 4 (gated)"
+    },
+    "mvp4_iw": {
+      "AUC": 0.7359,
+      "F1m": 0.6876,
+      "FPR": 0.2857,
+      "T2": 0.4308,
+      "T2_NotHate": 0.3378,
+      "label": "MVP 4-IW (NB09)"
+    },
+    "mvp4_iwcc": {
+      "AUC": 0.7339600293584012,
+      "F1m": 0.6882431823199778,
+      "FPR": 0.2980596119223845,
+      "T2": 0.46871868182340154,
+      "T2_NotHate": 0.5152243589743589,
+      "label": "MVP 4-IW-CC (this)"
+    },
+    "delta_vs_mvp4_iw": {
+      "AUC": -0.0019399706415987872,
+      "F1m": 0.0006431823199778419,
+      "FPR": 0.012359611922384495,
+      "T2": 0.03791868182340152,
+      "T2_NotHate": 0.17742435897435893
+    },
+    "delta_vs_mvp4": {
+      "AUC": -0.00603997064159878,
+      "F1m": -0.0005568176800221369,
+      "FPR": -0.00904038807761548,
+      "T2": -0.024581318176598477,
+      "T2_NotHate": -0.053275641025641085
+    },
+    "criterion_a_auc_no_drop": false,
+    "criterion_b_nothate_f1_geq_045": true,
+    "criterion_c_fpr_within_002": true,
+    "criterion_d_alpha_meaningful": true,
+    "n_success_axes_passed": 3,
+    "verdict": "PARTIAL WIN (3/4 criteria). What context modulation achieved vs what it cost:\n    + T2 NotHate F1 recovered to 0.5152 (from MVP 4-IW 0.3378)\n    - AUC degraded by +0.0019 below MVP 4-IW\n    + FPR within 0.02 of MVP 4-IW (0.2981 vs 0.2857)\n    + alpha_final=0.9596 > 0.1 -> context modulation mechanism was actively used"
+  }
+}

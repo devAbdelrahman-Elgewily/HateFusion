@@ -1,0 +1,43 @@
+{
+  "run_label": "mvp2_naive_concat",
+  "best_epoch": 1,
+  "best_val_t1_auc": 0.7487695878351341,
+  "best_val_t2_macro_f1": 0.37629876024667935,
+  "t1_pos_weight": 3.573890622879631,
+  "t1_thresholds": {
+    "balanced_headline": 0.5,
+    "recal_f1_optimised_on_recal_val": 0.22
+  },
+  "priors_for_recalibration": {
+    "hate": 0.2468,
+    "nothate": 0.7532
+  },
+  "t1_balanced_test_thr_0.5": {
+    "AUC": 0.7410764096430564,
+    "F1m": 0.6891864609622396,
+    "Pm": 0.6892353190938965,
+    "Rm": 0.6892013475680538,
+    "FPR": 0.30406081216243247,
+    "TN": 3479,
+    "FP": 1520,
+    "FN": 1588,
+    "TP": 3413
+  },
+  "t1_recalibrated_test_thr_opt": {
+    "AUC": 0.7410764096430564,
+    "F1m": 0.6827676886279954,
+    "Pm": 0.6879062159285995,
+    "Rm": 0.6842861273714451,
+    "FPR": 0.3850770154030806,
+    "TN": 3074,
+    "FP": 1925,
+    "FN": 1232,
+    "TP": 3769
+  },
+  "t2_test_macro_f1_valid_only": 0.3794726993565294,
+  "t2_test_n_valid": 8411,
+  "loss_weights": {
+    "t1": 0.7,
+    "t2": 0.3
+  }
+}

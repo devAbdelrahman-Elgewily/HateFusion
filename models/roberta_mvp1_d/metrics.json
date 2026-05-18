@@ -1,0 +1,40 @@
+{
+  "run_label": "diagnostic_D_rank32_lr3e4",
+  "description": "Diagnostic D: no NB04 warm-start, fresh LoRA rank 32 + lora_alpha 64, lora_lr=3e-4.",
+  "best_epoch": 4,
+  "best_val_auc": 0.7494991596638656,
+  "pos_weight_used": 3.573890622879631,
+  "lora_rank": 32,
+  "lora_alpha": 64,
+  "lora_lr": 0.0003,
+  "thresholds": {
+    "balanced_headline": 0.5,
+    "recal_f1_optimised_on_recal_val": 0.21000000000000002
+  },
+  "priors_for_recalibration": {
+    "hate": 0.2468,
+    "nothate": 0.7532
+  },
+  "balanced_test_thr_0.5": {
+    "AUC": 0.743131049725242,
+    "F1m": 0.6855052811660959,
+    "Pm": 0.687876569038079,
+    "Rm": 0.6862094274483771,
+    "FPR": 0.2666533306661332,
+    "TN": 3666,
+    "FP": 1333,
+    "FN": 1805,
+    "TP": 3196
+  },
+  "recalibrated_test_thr_opt": {
+    "AUC": 0.743131049725242,
+    "F1m": 0.6851821441216863,
+    "Pm": 0.689652887373893,
+    "Rm": 0.6864870874594835,
+    "FPR": 0.3780756151230246,
+    "TN": 3109,
+    "FP": 1890,
+    "FN": 1245,
+    "TP": 3756
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "max_len": 128,
+  "batch_size": 16,
+  "epochs": 5,
+  "lora_rank": 32,
+  "lora_alpha": 64,
+  "lora_lr": 0.0003,
+  "head_lr": 0.001,
+  "warmup_ratio": 0.1,
+  "gamma": 2.0,
+  "grad_accum_steps": 4,
+  "threshold": 0.5,
+  "weight_decay": 0.01,
+  "base_model": "cardiffnlp/twitter-roberta-base-2022-154m",
+  "prior_hate": 0.2468,
+  "prior_nothate": 0.7532,
+  "run_label": "diagnostic_D_rank32_lr3e4",
+  "seed": 42
+}

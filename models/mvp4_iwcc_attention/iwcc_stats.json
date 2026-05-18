@@ -1,0 +1,25 @@
+{
+  "lambda_id_init": 1.0,
+  "lambda_id_final": 0.9618746042251587,
+  "alpha_init": 1.0,
+  "alpha_final": 0.9596338868141174,
+  "gate_mean": {
+    "text": 1.0,
+    "image": 1.0052105814395418e-08,
+    "struct": 6.290155063481961e-10
+  },
+  "gate_std": {
+    "text": 1.19209286886246e-09,
+    "image": 7.149108416371064e-09,
+    "struct": 9.947401791166044e-10
+  },
+  "mean_gate_entropy_test": 1.87691384212485e-07,
+  "max_gate_entropy_log3": 1.0986122886681098,
+  "mean_id_attention_fraction_test": 0.08381600677967072,
+  "mean_id_attention_fraction_test_hate": 0.08320988714694977,
+  "mean_id_attention_fraction_test_nothate": 0.08442236483097076,
+  "mean_uniform_baseline_test": 0.08295506238937378,
+  "mean_ctx_modulator_test_hate": 1.2222472429275513,
+  "mean_ctx_modulator_test_nothate": 1.1528728008270264,
+  "n_test": 10000
+}

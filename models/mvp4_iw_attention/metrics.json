@@ -1,0 +1,94 @@
+{
+  "run_label": "mvp4_iw_attention",
+  "best_epoch": 3,
+  "best_val_t1_auc": 0.7435641456582633,
+  "best_val_t2_macro_f1": 0.4303193766845191,
+  "t1_pos_weight": 3.573890622879631,
+  "t1_thresholds": {
+    "balanced_headline": 0.5,
+    "recal_f1_optimised_on_recal_val": 0.22
+  },
+  "priors_for_recalibration": {
+    "hate": 0.2468,
+    "nothate": 0.7532
+  },
+  "t1_balanced_test_thr_0.5": {
+    "AUC": 0.7358764694350588,
+    "F1m": 0.6875822573300687,
+    "Pm": 0.6883343311361615,
+    "Rm": 0.6878053075122124,
+    "FPR": 0.28565713142628524,
+    "TN": 3571,
+    "FP": 1428,
+    "FN": 1694,
+    "TP": 3307
+  },
+  "t1_recalibrated_test_thr_opt": {
+    "AUC": 0.7358764694350588,
+    "F1m": 0.682085690893229,
+    "Pm": 0.6834437725167266,
+    "Rm": 0.6824928072997123,
+    "FPR": 0.35347069413882776,
+    "TN": 3232,
+    "FP": 1767,
+    "FN": 1408,
+    "TP": 3593,
+    "threshold": 0.22
+  },
+  "t2_test_macro_f1_valid_only": 0.4307868397521179,
+  "t2_test_n_valid": 8411,
+  "loss_weights": {
+    "t1": 0.7,
+    "t2": 0.3,
+    "entropy": 0.05
+  },
+  "iw_specific": {
+    "lambda_id_init": 1.0,
+    "lambda_id_final": 0.9556297063827515,
+    "mean_identity_attention_fraction_test": 0.13898764550685883,
+    "std_identity_attention_fraction_test": 0.11247608065605164,
+    "median_identity_attention_fraction_test": 0.13461601734161377,
+    "mean_uniform_baseline_test": 0.08295506238937378,
+    "lift": 1.6754571199417114,
+    "over_indexing": true
+  },
+  "comparison": {
+    "mvp1": {
+      "AUC": 0.7431,
+      "F1m": 0.6855,
+      "FPR": 0.2667,
+      "label": "MVP 1 (text-only)"
+    },
+    "mvp2": {
+      "AUC": 0.7411,
+      "F1m": 0.6892,
+      "FPR": 0.3041,
+      "label": "MVP 2 (T+I naive)"
+    },
+    "mvp3": {
+      "AUC": 0.7406,
+      "F1m": 0.6905,
+      "FPR": 0.3361,
+      "label": "MVP 3 (T+I+S naive)"
+    },
+    "mvp4": {
+      "AUC": 0.74,
+      "F1m": 0.6888,
+      "FPR": 0.3071,
+      "label": "MVP 4 (gated, lambda_ent=0.05)"
+    },
+    "mvp4_iw": {
+      "AUC": 0.7358764694350588,
+      "F1m": 0.6875822573300687,
+      "FPR": 0.28565713142628524,
+      "label": "MVP 4-IW (this run)"
+    },
+    "auc_lift_vs_best_baseline": -0.007223530564941183,
+    "fpr_drop_vs_mvp2": 0.018442868573714744,
+    "auc_pass": false,
+    "fpr_pass": true,
+    "iw_active": true,
+    "n_success_axes_passed": 2,
+    "verdict": "HYPOTHESIS PARTIALLY OR FULLY SUPPORTED. 2/3 success axes passed: AUC=fail, FPR=PASS, IW=YES."
+  }
+}

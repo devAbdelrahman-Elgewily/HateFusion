@@ -1,0 +1,76 @@
+{
+  "run_label": "mvp4_gated_fusion_lowercase",
+  "best_epoch": 2,
+  "best_val_t1_auc": 0.7414496198479392,
+  "best_val_t2_macro_f1": 0.44195676505517884,
+  "t1_pos_weight": 3.573890622879631,
+  "t1_thresholds": {
+    "balanced_headline": 0.5,
+    "recal_f1_optimised_on_recal_val": 0.22
+  },
+  "priors_for_recalibration": {
+    "hate": 0.2468,
+    "nothate": 0.7532
+  },
+  "t1_balanced_test_thr_0.5": {
+    "AUC": 0.735756949430278,
+    "F1m": 0.686661817861677,
+    "Pm": 0.6871374819132905,
+    "Rm": 0.6868042274721691,
+    "FPR": 0.2920584116823365,
+    "TN": 3539,
+    "FP": 1460,
+    "FN": 1672,
+    "TP": 3329
+  },
+  "t1_recalibrated_test_thr_opt": {
+    "AUC": 0.735756949430278,
+    "F1m": 0.675360039978929,
+    "Pm": 0.6799701927393667,
+    "Rm": 0.6767867070714684,
+    "FPR": 0.38967793558711744,
+    "TN": 3051,
+    "FP": 1948,
+    "FN": 1284,
+    "TP": 3717,
+    "threshold": 0.22
+  },
+  "t2_test_macro_f1_valid_only": 0.4410379634973407,
+  "t2_test_n_valid": 268,
+  "loss_weights": {
+    "t1": 0.7,
+    "t2": 0.3,
+    "entropy": 0.05
+  },
+  "comparison": {
+    "mvp1": {
+      "AUC": 0.7431,
+      "F1m": 0.6855,
+      "FPR": 0.2667,
+      "label": "MVP 1 (text-only)"
+    },
+    "mvp2": {
+      "AUC": 0.7411,
+      "F1m": 0.6892,
+      "FPR": 0.3041,
+      "label": "MVP 2 (T+I naive)"
+    },
+    "mvp3": {
+      "AUC": 0.7406,
+      "F1m": 0.6905,
+      "FPR": 0.3361,
+      "label": "MVP 3 (T+I+S naive)"
+    },
+    "mvp4": {
+      "AUC": 0.735756949430278,
+      "F1m": 0.686661817861677,
+      "FPR": 0.2920584116823365,
+      "label": "MVP 4 (T+I+S gated attn)"
+    },
+    "auc_lift_vs_best_baseline": -0.007343050569721954,
+    "fpr_drop_vs_mvp2": 0.012041588317663499,
+    "auc_pass": false,
+    "fpr_pass": true,
+    "verdict": "PARTIAL CONFIRMATION. FPR drops below MVP 2 but AUC does not exceed the naive baselines by a meaningful margin. The gate is acting conservatively without unlocking new signal."
+  }
+}

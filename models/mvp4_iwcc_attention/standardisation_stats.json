@@ -1,0 +1,48 @@
+{
+  "feature_order": [
+    "vader_neg",
+    "vader_neu",
+    "n_emoji",
+    "hate_keyword_count",
+    "ocr_present",
+    "profanity_count",
+    "n_hashtags",
+    "ocr_len",
+    "n_mentions"
+  ],
+  "binary_features": [
+    "ocr_present"
+  ],
+  "non_binary_features": [
+    "vader_neg",
+    "vader_neu",
+    "n_emoji",
+    "hate_keyword_count",
+    "profanity_count",
+    "n_hashtags",
+    "ocr_len",
+    "n_mentions"
+  ],
+  "ocr_len_clip": 389.0,
+  "ocr_len_clip_percentile": 0.99,
+  "feature_means": {
+    "vader_neg": 0.17250415368639668,
+    "vader_neu": 0.7298123646343272,
+    "n_emoji": 0.5630173564753004,
+    "hate_keyword_count": 0.7223557335706868,
+    "profanity_count": 0.9150274439994066,
+    "n_hashtags": 0.20240320427236316,
+    "ocr_len": 29.380655689066906,
+    "n_mentions": 0.5288681204569055
+  },
+  "feature_stds": {
+    "vader_neg": 0.18661501424474414,
+    "vader_neu": 0.20666959234596216,
+    "n_emoji": 1.5613536697844688,
+    "hate_keyword_count": 0.4846189324710448,
+    "profanity_count": 0.8332067300289665,
+    "n_hashtags": 0.789256321126247,
+    "ocr_len": 68.85182576745457,
+    "n_mentions": 0.8290304812882765
+  }
+}

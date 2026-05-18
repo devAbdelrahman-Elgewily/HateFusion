@@ -1,0 +1,82 @@
+{
+  "run_label": "mvp4_gated_fusion_ent01",
+  "best_epoch": 7,
+  "best_val_t1_auc": 0.7480064825930371,
+  "best_val_t2_macro_f1": 0.4964079810409992,
+  "t1_pos_weight": 3.573890622879631,
+  "t1_thresholds": {
+    "balanced_headline": 0.5,
+    "recal_f1_optimised_on_recal_val": 0.21000000000000002
+  },
+  "priors_for_recalibration": {
+    "hate": 0.2468,
+    "nothate": 0.7532
+  },
+  "t1_balanced_test_thr_0.5": {
+    "AUC": 0.7407273696290948,
+    "F1m": 0.6876718123810674,
+    "Pm": 0.6877711399530323,
+    "Rm": 0.6877019275080771,
+    "FPR": 0.3026605321064213,
+    "TN": 3486,
+    "FP": 1513,
+    "FN": 1610,
+    "TP": 3391
+  },
+  "t1_recalibrated_test_thr_opt": {
+    "AUC": 0.7407273696290948,
+    "F1m": 0.6731729702040468,
+    "Pm": 0.6842943137551964,
+    "Rm": 0.6765795470631819,
+    "FPR": 0.42568513702740546,
+    "TN": 2871,
+    "FP": 2128,
+    "FN": 1106,
+    "TP": 3895,
+    "threshold": 0.21000000000000002
+  },
+  "t2_test_macro_f1_valid_only": 0.5061937745263553,
+  "t2_test_n_valid": 276,
+  "loss_weights": {
+    "t1": 0.7,
+    "t2": 0.3,
+    "entropy": 0.01
+  },
+  "comparison": {
+    "mvp1": {
+      "AUC": 0.7431,
+      "F1m": 0.6855,
+      "FPR": 0.2667,
+      "label": "MVP 1 (text-only)"
+    },
+    "mvp2": {
+      "AUC": 0.7411,
+      "F1m": 0.6892,
+      "FPR": 0.3041,
+      "label": "MVP 2 (T+I naive)"
+    },
+    "mvp3": {
+      "AUC": 0.7406,
+      "F1m": 0.6905,
+      "FPR": 0.3361,
+      "label": "MVP 3 (T+I+S naive)"
+    },
+    "mvp4_orig": {
+      "AUC": 0.74,
+      "F1m": 0.6888,
+      "FPR": 0.3071,
+      "label": "MVP 4 (orig, ent_w=0.05, 5ep)"
+    },
+    "mvp4b": {
+      "AUC": 0.7407273696290948,
+      "F1m": 0.6876718123810674,
+      "FPR": 0.3026605321064213,
+      "label": "MVP 4-B (ent_w=0.01, 10ep)"
+    },
+    "auc_lift_vs_best_baseline": -0.002372630370905182,
+    "fpr_drop_vs_mvp2": 0.001439467893578683,
+    "auc_pass": false,
+    "fpr_pass": false,
+    "verdict": "PRIMARY HYPOTHESIS NOT SUPPORTED ON THIS RUN. Gated attention did not beat the naive baselines on either AUC or FPR. Inspect gate entropy trajectory and per-branch usage; consider tuning entropy_weight, fusion_dim, or unfreezing select layers."
+  }
+}

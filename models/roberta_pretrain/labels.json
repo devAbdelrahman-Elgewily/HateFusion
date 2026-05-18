@@ -1,0 +1,19 @@
+{
+  "label2id": {
+    "not_cyberbullying": 0,
+    "religion": 1,
+    "age": 2,
+    "ethnicity": 3,
+    "gender": 4,
+    "other_cyberbullying": 5
+  },
+  "id2label": {
+    "0": "not_cyberbullying",
+    "1": "religion",
+    "2": "age",
+    "3": "ethnicity",
+    "4": "gender",
+    "5": "other_cyberbullying"
+  },
+  "note": "multi-class head trained here is intentionally NOT saved"
+}

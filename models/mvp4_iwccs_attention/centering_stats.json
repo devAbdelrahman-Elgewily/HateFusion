@@ -1,0 +1,6 @@
+{
+  "mu_vneg_train": 0.17250415368639668,
+  "mu_vneg_val_informational": 0.19419023804760954,
+  "mu_vneg_test_informational": 0.19545679999999999,
+  "rule": "IW-CC bias modulation uses vader_neg - mu_vneg_train. Val/test means are recorded for documentation only and are NOT used in the model."
+}
